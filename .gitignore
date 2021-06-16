@@ -39,6 +39,9 @@ jspm_packages/
 # Development directory
 Frontend
 
+# Rest API tests
+rest_tests
+
 # TypeScript v1 declaration files
 typings/
 
