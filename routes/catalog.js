@@ -8,15 +8,11 @@ const db = require("./util/db");
  */
 router.get("/", async (req, res) => {
     // Make sure a user is logged in
-    if (!req.session.user) {
-        return res.json({ success: false, message: "A user must be logged in to see their catalog" });
-    }
+    if (!req.session.user) return res.json({ success: false, message: "ERR: No user logged in." });
 
     // Retrieve a user's catalog
-    const { success, data = [], error = null } = await db.catalog.getByUserID(req.session.user.userID);
-    if (!success) {
-        return res.json({ success, message: "Could not retrieve a catalog.", error });
-    }
+    const [data, error] = await db.catalog.getByUserID(req.session.user.userID);
+    if (error) return res.json({ success: false, message: "ERR: Could not retrieve a catalog.", });
 
     // Return a user's catalog
     return res.json({ success, catalog: data, message: "Catalog successfully retrieved." });
@@ -31,7 +27,7 @@ router.post("/add", async (req, res) => {
 
     // Make sure all parameters are present
     if (!req.body.imdbID && !req.body.tmdbID && !req.body.title && !req.body.poster && !req.body.releaseDate) {
-        return res.json({ success: false, message: "Missing parameter(s): imdbID, tmdbID, title, poster, and/or releaseDate." });
+        return res.json({ success: false, message: "ERR: Missing parameter(s): imdbID, tmdbID, title, poster, and/or releaseDate." });
     }
     
     // Check the table "MOVIES" in the database for a movie with a matching TMDb ID.
@@ -73,11 +69,33 @@ router.post("/add", async (req, res) => {
     return res.json({ success: true, message: "Movie cataloged for User." });
 });
 
-// Check in catalog route
-// get true or false if in catalog by session user id and movie id
+/**
+ * Remove a movie from a logged in user's catalog
+ */
+router.delete("/remove", async (req, res) => {
+    // Make sure a user is logged in
+    if (!req.session.user) return res.json({ success: false, message: "ERR: No user logged in." });
+
+    // Make sure all parameters are present
+    if (!req.body.tmdbID) return res.json({ success: false, message: "ERR: Missing parameter: tmdbID" });
+
+    // Check the table "MOVIES" in the database for a movie with a matching TMDb ID.
+    // If found, remove it from the user's catalog. If a movie is not found then return an error.
+    const [data_1, error_1] = await db.movies.find.byTMDbID(req.body.tmdbID);
+
+    if (error_1) return res.json({ success: false, message: "ERR: Checking movies for match" });
+
+    if (data_1.length === 0) return res.json({ success: false, message: "ERR: No match for movie found." });
+        
+    const movieID = data_1[0].MOVIE_ID;
+    
+    const [, error_2] = await db.catalog.remMovie(req.session.user.userID, movieID);
+    if (error_2) return res.json({ success: false, message: "ERR: Removing movie from catalog." });
+    return res.json({ success: true, message: "Movie removed from user's catalog." });
+});
+
 
 // Update copy count
 
-// Remove from catalog
 
 module.exports = router;
