@@ -52,32 +52,23 @@ db.query = async (queryString, valuesArray = []) => {
 db.newReleases = {};
 
 db.newReleases.all = async () => {
-    const [data, error] = await asyncHandler(async () => { return await query("SELECT * FROM NEW_RELEASES") });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query("SELECT * FROM NEW_RELEASES") });
 };
 
 db.newReleases.insert = async ({ imdbID, tmdbID, title, poster, releaseWeek }) => {
     const queryString = 'INSERT INTO NEW_RELEASES VALUES(NULL, ?, ?, ?, ?, ?);';
     const valuesArray = [imdbID, tmdbID, title, poster, releaseWeek];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.newReleases.clearAll = async () => {
-    "TRUNCATE TABLE NEW_RELEASES;"
-    const [data, error] = await asyncHandler(async () => { return await query("TRUNCATE TABLE NEW_RELEASES;") });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query("TRUNCATE TABLE NEW_RELEASES;") });
 };
 
 db.movies = {};
 
 db.movies.all = async () => {
-    const [data, error] = await asyncHandler(async () => { return await query("SELECT * FROM MOVIES") });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query("SELECT * FROM MOVIES") });
 };
 
 db.movies.find = {};
@@ -85,33 +76,25 @@ db.movies.find = {};
 db.movies.find.byMovieID = async (movieID) => {
     const queryString = "SELECT * FROM MOVIES WHERE MOVIE_ID = ?;";
     const valuesArray = [movieID];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.movies.find.byIMDbID = async (imdbID) => {
     const queryString = "SELECT * FROM MOVIES WHERE IMDB_ID = ?;";
     const valuesArray = [imdbID];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.movies.find.byTMDbID = async (tmdbID) => {
     const queryString = "SELECT * FROM MOVIES WHERE TMDB_ID = ?;";
     const valuesArray = [tmdbID];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.movies.insert = async ({ imdbID, tmdbID, title, poster, releaseDate }) => {
-    const queryString = 'INSERT INTO MOVIE VALUES(NULL, ?, ?, ?, ?, ?);';
+    const queryString = 'INSERT INTO MOVIES VALUES(NULL, ?, ?, ?, ?, ?);';
     const valuesArray = [imdbID, tmdbID, title, poster, releaseDate];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.users = {};
@@ -205,27 +188,44 @@ db.catalog = {};
 
 db.catalog.getByUserID = async (userID) => {
     const queryString = "SELECT * FROM CATALOG NATURAL JOIN MOVIES WHERE CATALOG.USER_ID = ?;";
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, [userID]) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, [userID]) });
 };
 
-db.catalog.addMovie = async ({ userID, movieID, copies = 1 }) => {
+db.catalog.addMovie = async (userID, movieID, copies = 1) => {
     const queryString = 'INSERT INTO CATALOG VALUES(?, ?, ?);';
     const valuesArray = [userID, movieID, copies];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.catalog.remMovie = async (userID, movieID) => {
     const queryString = "DELETE FROM CATALOG WHERE USER_ID = ? AND MOVIE_ID = ?;";
     const valuesArray = [userID, movieID];
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+};
+
+db.catalog.checkFor = async (userID, movieID) => {
+    const queryString = "SELECT * FROM CATALOG WHERE USER_ID = ? AND MOVIE_ID = ?;";
+    const valuesArray = [userID, movieID];
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
 db.wishList = {};
+
+db.wishList.getByUserID = async (userID) => {
+    const queryString = "SELECT * FROM WISH_LIST NATURAL JOIN MOVIES WHERE WISH_LIST.USER_ID = ?;";
+    return await asyncHandler(async () => { return await query(queryString, [userID]) });
+};
+
+db.wishList.checkFor = async (userID, movieID) => {
+    const queryString = "SELECT * FROM WISH_LIST WHERE USER_ID = ? AND MOVIE_ID = ?;";
+    const valuesArray = [userID, movieID];
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+};
+
+db.wishList.remMovie = async (userID, movieID) => {
+    const queryString = "DELETE FROM WISH_LIST WHERE USER_ID = ? AND MOVIE_ID = ?;";
+    const valuesArray = [userID, movieID];
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+};
 
 module.exports = db;

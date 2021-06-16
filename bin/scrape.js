@@ -99,8 +99,8 @@ const scrape = async () => {
     }
     console.log(`${scrapeResults.length} results have been scraped.`);
 
-    const { success } = await db.newReleases.clearAll();
-    if (!success) {
+    const [data_1, error_1] = await db.newReleases.clearAll();
+    if (error_1) {
         console.log("Could not empty 'NEW_RELEASES' table!");
         return;
     }
@@ -133,11 +133,11 @@ const scrape = async () => {
             releaseWeek: result.releaseWeek
         };
     
-        const { success, error: err = false } = await db.newReleases.insert(release);
+        const [data_2, error_2] = await db.newReleases.insert(release);
     
-        if (!success && !err) {
+        if (error_2) {
             console.log("Could not insert release into table: 'NEW_RELEASES'.");
-            console.error(error);
+            console.error(error_2);
             return false;
         }
     
