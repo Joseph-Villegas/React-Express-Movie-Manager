@@ -46,25 +46,30 @@ router.post("/add", async (req, res) => {
     } else {
         movieID = data_1[0].MOVIE_ID;
     }
-    
-    // Check the "WISH_LIST" table for a movie with a matching movie ID. If one is found then remove it.
-    const [data_3, error_3] = await db.wishList.checkFor(req.session.user.userID, movieID);
-    if (error_3) return res.json({ success: false, message: "ERR: Checking wish list for match." });
 
-    if (data_3.length !== 0) { 
-        const [, error_4] = await db.wishList.remMovie(req.session.user.userID, movieID);
-        if (error_4) return res.json({ success: false, message: "ERR: Deleting from wish list." });
+    // Check the "CATALOG" table for a movie with a matching movie ID. 
+    // If found, return an error. A user can only catalog a movie once.
+    const [data_3, error_3] = await db.catalog.checkFor(req.session.user.userID, movieID);
+    if (error_3) return res.json({ success: false, message: "ERR: Checking catalog for match." });
+    if (data_3.length !== 0) return res.json({ success: false, message: "ERR: Movie is in user's catalog." });
+
+    // Check the "WISH_LIST" table for a movie with a matching movie ID. If one is found then remove it.
+    const [data_4, error_4] = await db.wishList.checkFor(req.session.user.userID, movieID);
+    if (error_4) return res.json({ success: false, message: "ERR: Checking wish list for match." });
+
+    if (data_4.length !== 0) { 
+        const [, error_5] = await db.wishList.remMovie(req.session.user.userID, movieID);
+        if (error_5) return res.json({ success: false, message: "ERR: Deleting from wish list." });
     }
 
     // Then check the "CATALOG" table for a matching entry given a movie ID and the logged in user's user ID.
-    const [data_5, error_5] = await db.catalog.checkFor(req.session.user.userID, movieID);
-    if (error_5) return res.json({ success: false, message: "ERR: Checking catalog for match" });
-
-    if (data_5.length !== 0) return res.json({ success: false, message: "ERR: Movie has already been cataloged for user." });
+    const [data_6, error_6] = await db.catalog.checkFor(req.session.user.userID, movieID);
+    if (error_6) return res.json({ success: false, message: "ERR: Checking catalog for match" });
+    if (data_6.length !== 0) return res.json({ success: false, message: "ERR: Movie has already been cataloged for user." });
 
     // If not matching entry is found then add the user ID and movie ID to the "CATALOG" table.
-    const [, error_6] = await db.catalog.addMovie(req.session.user.userID, movieID);
-    if (error_6) return res.json({ success: false, message: "ERR: Adding movie to catalog" });
+    const [, error_7] = await db.catalog.addMovie(req.session.user.userID, movieID);
+    if (error_7) return res.json({ success: false, message: "ERR: Adding movie to catalog" });
 
     return res.json({ success: true, message: "Movie cataloged for User." });
 });
@@ -94,8 +99,30 @@ router.delete("/remove", async (req, res) => {
     return res.json({ success: true, message: "Movie removed from user's catalog." });
 });
 
+/**
+ * Update the copy count for a film in a logged in user's catalog
+ */
+router.put("/update", async (req, res) => {
+    // Make sure a user is logged in
+    if (!req.session.user) return res.json({ success: false, message: "ERR: No user logged in." });
 
-// Update copy count
+    // Make sure all parameters are present and valid
+    if (!req.body.tmdbID || !req.body.copies || req.body.copies <= 0) return res.json({ success: false, message: "ERR: Missing/Invalid parameter: tmdbID and/or copies." });
 
+    // Check the table "MOVIES" in the database for a movie with a matching TMDb ID.
+    // If found, remove it from the user's catalog. If a movie is not found then return an error.
+    const [data_1, error_1] = await db.movies.find.byTMDbID(req.body.tmdbID);
+
+    if (error_1) return res.json({ success: false, message: "ERR: Checking movies for match" });
+
+    if (data_1.length === 0) return res.json({ success: false, message: "ERR: No match for movie found." });
+        
+    const movieID = data_1[0].MOVIE_ID;
+
+    // Update the copy count for this user's movie
+    const [, error_2] = await db.catalog.update(req.session.user.userID, movieID, req.body.copies);
+    if (error_2) return res.json({ success: false, message: "ERR: Updating catalog copy count." });
+    return res.json({ success: true, message: "Copy count in catalog updated." });
+});
 
 module.exports = router;
