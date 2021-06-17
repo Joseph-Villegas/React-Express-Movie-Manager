@@ -19,6 +19,20 @@ router.get("/", async (req, res) => {
 });
 
 /**
+ * Retrieves a user's catalog
+ */
+ router.get("/visit", async (req, res) => {
+    if (!req.query.userID) return res.json({ success: false, message: "ERR: Missing parameter: 'userID'." });
+
+    // Retrieve a user's catalog
+    const [data, error] = await db.catalog.getByUserID(req.query.userID);
+    if (error) return res.json({ success: false, message: "ERR: Could not retrieve a catalog.", });
+
+    // Return a user's catalog
+    return res.json({ success: true, catalog: data, message: "Catalog successfully retrieved." });
+});
+
+/**
  * Add a movie to a logged in user's catalog
  */
 router.post("/add", async (req, res) => {
