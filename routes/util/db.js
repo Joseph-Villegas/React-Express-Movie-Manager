@@ -209,6 +209,12 @@ db.catalog.checkFor = async (userID, movieID) => {
     return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
+db.catalog.update = async (userID, movieID, copies) => {
+    const queryString = 'UPDATE CATALOG SET COPIES = ? WHERE USER_ID = ? AND MOVIE_ID = ?;';
+    const valuesArray = [copies, userID, movieID];
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+};
+
 db.wishList = {};
 
 db.wishList.getByUserID = async (userID) => {
