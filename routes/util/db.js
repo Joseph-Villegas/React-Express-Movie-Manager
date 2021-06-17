@@ -44,11 +44,10 @@ const asyncHandler = async (asyncFunc) => {
 let db = {};
 
 db.query = async (queryString, valuesArray = []) => {
-    const [data, error] = await asyncHandler(async () => { return await query(queryString, valuesArray) });
-    if (error) return { success: false, error: error };
-    return { success: true, data: data };
+    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 }
 
+/* ========== Functions for the 'NEW_RELEASES' table ========== */
 db.newReleases = {};
 
 db.newReleases.all = async () => {
@@ -65,6 +64,7 @@ db.newReleases.clearAll = async () => {
     return await asyncHandler(async () => { return await query("TRUNCATE TABLE NEW_RELEASES;") });
 };
 
+/* ========== Functions for the 'MOVIES' table ========== */
 db.movies = {};
 
 db.movies.all = async () => {
@@ -97,6 +97,7 @@ db.movies.insert = async ({ imdbID, tmdbID, title, poster, releaseDate }) => {
     return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
+/* ========== Functions for the 'USERS' table ========== */
 db.users = {};
 
 db.users.all = async () => { 
@@ -184,6 +185,7 @@ db.users.validate = {
     lastName: ({ lastName }) => { return lastName.length > 0 && lastName.length <= 255; }
 };
 
+/* ========== Functions for the 'CATALOG' table ========== */
 db.catalog = {};
 
 db.catalog.getByUserID = async (userID) => {
@@ -215,6 +217,7 @@ db.catalog.update = async (userID, movieID, copies) => {
     return await asyncHandler(async () => { return await query(queryString, valuesArray) });
 };
 
+/* ========== Functions for the 'WISH_LIST' table ========== */
 db.wishList = {};
 
 db.wishList.getByUserID = async (userID) => {
@@ -224,14 +227,12 @@ db.wishList.getByUserID = async (userID) => {
 
 db.wishList.checkFor = async (userID, movieID) => {
     const queryString = "SELECT * FROM WISH_LIST WHERE USER_ID = ? AND MOVIE_ID = ?;";
-    const valuesArray = [userID, movieID];
-    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+    return await asyncHandler(async () => { return await query(queryString, [userID, movieID]) });
 };
 
 db.wishList.remMovie = async (userID, movieID) => {
     const queryString = "DELETE FROM WISH_LIST WHERE USER_ID = ? AND MOVIE_ID = ?;";
-    const valuesArray = [userID, movieID];
-    return await asyncHandler(async () => { return await query(queryString, valuesArray) });
+    return await asyncHandler(async () => { return await query(queryString, [userID, movieID]) });
 };
 
 module.exports = db;
