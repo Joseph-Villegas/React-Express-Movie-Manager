@@ -19,6 +19,20 @@ router.get("/", async (req, res) => {
 });
 
 /**
+ * Retrieves a user's wish list
+ */
+ router.get("/visit", async (req, res) => {
+    if (!req.query.userID) return res.json({ success: false, message: "ERR: Missing parameter: 'userID'." });
+
+    // Retrieve a user's wish list
+    const [data, error] = await db.wishList.getByUserID(req.query.userID);
+    if (error) return res.json({ success: false, message: "ERR: Could not retrieve a catalog.", });
+
+    // Return a user's wish list
+    return res.json({ success: true, catalog: data, message: "Wish list successfully retrieved." });
+});
+
+/**
  * Add a movie to a logged in user's wish list
  */
 router.post("/add", async (req, res) => {
